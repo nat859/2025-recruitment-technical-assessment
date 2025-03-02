@@ -26,7 +26,7 @@ const app = express();
 app.use(express.json());
 
 // Store your recipes here!
-const cookbook: any = null;
+const cookbook: cookbookEntry[] = [];
 
 // Task 1 helper (don't touch)
 app.post("/parse", (req:Request, res:Response) => {
@@ -45,23 +45,44 @@ app.post("/parse", (req:Request, res:Response) => {
 // [TASK 1] ====================================================================
 // Takes in a recipeName and returns it in a form that 
 const parse_handwriting = (recipeName: string): string | null => {
-  // TODO: implement me
-  return recipeName
+    recipeName = recipeName.replace(/[-_]/g, " ");
+    recipeName = recipeName.replace(/[^A-Za-z ]+/g, "");
+    recipeName = recipeName.replace(/\s+/g, " ").trim();
+    recipeName = recipeName.toLowerCase();
+    recipeName = recipeName.replace(/\b\w/g, (char) => char.toUpperCase());
+    return recipeName.length > 0 ? recipeName : null;
 }
 
 // [TASK 2] ====================================================================
 // Endpoint that adds a CookbookEntry to your magical cookbook
 app.post("/entry", (req:Request, res:Response) => {
-  // TODO: implement me
-  res.status(500).send("not yet implemented!")
+    const entry: any = req.body;
+    if (entry.type !== "recipe" && entry.type !== "ingredient") {
+        return res.status(400).send("invalid type!");
+    } else if (cookbook.some(storedEntry => storedEntry.name === entry.name)) {
+        return res.status(400).send("invalid name!");
+    } else if (entry.type === "ingredient" && entry.cookTime < 0) {
+        return res.status(400).send("invalid cook time!");
+    } else if (entry.type === "recipe") {
+        const items = new Set();
+        for (const item of entry.requiredItems) {
+          if (items.has(item.name)) {
+            return res.status(400).send("invalid items!!");
+          }
+          items.add(item.name);
+        }
+    }
 
+    cookbook.push(entry)
+
+    res.status(200).send({})
 });
 
 // [TASK 3] ====================================================================
 // Endpoint that returns a summary of a recipe that corresponds to a query name
 app.get("/summary", (req:Request, res:Request) => {
-  // TODO: implement me
-  res.status(500).send("not yet implemented!")
+    // TODO: implement me
+    res.status(500).send("not yet implemented!")
 
 });
 
